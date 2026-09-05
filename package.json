@@ -1,0 +1,19 @@
+{
+  "name": "xs-chatbot",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vercel dev",
+    "test": "node --test backend/services"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "groq-sdk": "^0.7.0",
+    "@google/generative-ai": "^0.21.0",
+    "@upstash/ratelimit": "^2.0.3",
+    "@upstash/redis": "^1.34.0"
+  },
+  "devDependencies": {
+    "vercel": "^37.4.0"
+  }
+}
