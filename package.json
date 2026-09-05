@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "vercel dev",
-    "test": "node --test backend/services"
+    "test": "node --test \"backend/services/*.test.js\""
   },
   "dependencies": {
     "express": "^4.19.2",
