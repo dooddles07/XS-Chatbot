@@ -8,17 +8,21 @@ const ratelimit = new Ratelimit({
 });
 
 async function rateLimit(req, res, next) {
-  const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown')
-    .split(',')[0]
-    .trim();
-  const { success, reset } = await ratelimit.limit(ip);
-  if (!success) {
-    return res.status(429).json({
-      error: 'rate_limited',
-      retryAfter: Math.ceil((reset - Date.now()) / 1000)
-    });
+  try {
+    const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown')
+      .split(',')[0]
+      .trim();
+    const { success, reset } = await ratelimit.limit(ip);
+    if (!success) {
+      return res.status(429).json({
+        error: 'rate_limited',
+        retryAfter: Math.ceil((reset - Date.now()) / 1000)
+      });
+    }
+    next();
+  } catch (err) {
+    next(err);
   }
-  next();
 }
 
 module.exports = rateLimit;
