@@ -13,15 +13,6 @@
   /* ---------------------------------------------------------
      chat (works with or without motion)
      --------------------------------------------------------- */
-  var replies = [
-    "Good start. What outcome would make this obviously worth it?",
-    "Say the version you're afraid to say. That's usually the real brief.",
-    "Strip it to one sentence. If it survives, we build it.",
-    "Here's the sharper question: what happens if you do nothing?",
-    "Name the constraint. Constraints are where the interesting shape comes from."
-  ];
-  var replyIndex = 0;
-
   var log = document.getElementById('chatLog');
   var form = document.getElementById('chatForm');
   var field = document.getElementById('chatField');
@@ -50,11 +41,28 @@
     log.appendChild(typing);
     log.scrollTop = log.scrollHeight;
 
-    setTimeout(function () {
-      typing.remove();
-      bubble(replies[replyIndex % replies.length], 'bot');
-      replyIndex++;
-    }, 900);
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text.trim() })
+    })
+      .then(function (r) {
+        return r.json().then(function (data) { return { ok: r.ok, status: r.status, data: data }; });
+      })
+      .then(function (result) {
+        typing.remove();
+        if (result.ok) {
+          bubble(result.data.reply, 'bot');
+        } else if (result.status === 429) {
+          bubble("Slow down a second.", 'bot');
+        } else {
+          bubble("XS is having a moment — try again.", 'bot');
+        }
+      })
+      .catch(function () {
+        typing.remove();
+        bubble("XS is having a moment — try again.", 'bot');
+      });
   }
 
   form.addEventListener('submit', function (e) {
