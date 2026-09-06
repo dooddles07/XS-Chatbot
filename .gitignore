@@ -3,3 +3,6 @@ node_modules/
 .env.local
 .vercel
 .env*
+LINKEDIN_POST.md
+.playwright-mcp/
+*.png
