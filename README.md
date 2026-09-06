@@ -1,12 +1,51 @@
-# XS Chatbot
+# XS
 
-Static landing page with a real Groq/Gemini-backed chat widget, deployed on Vercel at zero cost.
+**Intelligence, with a point of view.**
 
-## Local development
+XS is a scroll-driven landing page for an AI chatbot, backed by a real LLM instead of a scripted demo. Built as a personal project — animated frontend, a small Node/Express API, and a zero-cost hosting setup with automatic failover between two LLM providers.
+
+🔗 **Live:** [xs-chatbot.vercel.app](https://xs-chatbot.vercel.app/)
+
+## What it does
+
+- Scroll-choreographed hero with a scrubbed background video (GSAP + ScrollTrigger)
+- A working chat widget ("Ask XS") that talks to a real LLM — not canned replies
+- If the primary model is down or rate-limited, it silently falls back to a second provider instead of erroring out
+- Per-visitor rate limiting so a burst of traffic can't drain the free API quota
+
+## How it's built
+
+| Layer | Choice |
+|---|---|
+| Frontend | Plain HTML/CSS/JS, GSAP for scroll animation — no framework, no build step |
+| Backend | Node.js + Express, MVC-style (`controllers/` → `services/` → `middleware/`) |
+| Primary LLM | Groq (`llama-3.1-8b-instant`) |
+| Fallback LLM | Google Gemini (`gemini-3.8-flash`, Interactions API) |
+| Rate limiting | Upstash Redis (sliding window, per IP) |
+| Hosting | Vercel — static frontend + serverless API, one deploy, zero cost |
+
+Frontend and backend are served from the same domain (`public/` for static files, `api/` for the one serverless function), so there's no CORS, no separate backend host, and no infrastructure to manage.
+
+## Architecture
+
+```
+public/          → static site (index.html, app.js, styles.css, assets)
+api/chat.js      → Vercel serverless entrypoint
+backend/
+  app.js         → Express app
+  controllers/   → request validation, response shaping
+  services/      → Groq + Gemini clients, fallback orchestration
+  middleware/    → rate limiting, error handling
+  config/        → env var validation
+```
+
+`POST /api/chat` takes `{ "message": string }` and returns `{ "reply": string }`, or a typed error (`invalid_request`, `rate_limited`, `llm_unavailable`, `server_error`).
+
+## Running it locally
 
 1. `npm install`
 2. Copy `.env.example` to `.env.local` and fill in the four values (see below).
-3. `npm run dev` — serves `public/` and `/api` together via `vercel dev`.
+3. `vercel dev` — serves `public/` and `/api` together.
 
 ## Getting free API keys
 
@@ -16,7 +55,7 @@ Static landing page with a real Groq/Gemini-backed chat widget, deployed on Verc
 
 ## Deploying
 
-1. Push this repo to GitHub (already done).
+1. Push to GitHub.
 2. vercel.com → New Project → import the repo → framework preset "Other" (zero-config).
 3. Project Settings → Environment Variables → add all four keys above for Production, Preview, and Development.
 4. Push to `main` — Vercel auto-deploys.
